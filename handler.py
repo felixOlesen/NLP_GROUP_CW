@@ -75,7 +75,7 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         # Read the mapping file, index to object name
         mapping_file_path = os.path.join(model_dir, "index_to_name.json")
         
-        label_mappings = {0: 'admiration',
+        self.label_mappings = {0: 'admiration',
                             1: 'anger',
                             2: 'confusion',
                             3: 'curiosity',
@@ -159,12 +159,15 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         )
         print("This the output from the Seq classification model", predictions)
 
-        num_rows, num_cols = predictions[0].shape
-        for i in range(num_rows):
-            out = predictions[0][i].unsqueeze(0)
-            y_hat = out.argmax(1).item()
-            predicted_idx = str(y_hat)
-            inferences.append(self.mapping[predicted_idx])
+        #num_rows, num_cols = predictions[0].shape
+        #num_rows = predictions[0].shape
+        #for i in range(num_rows):
+        #out = predictions[0][i].unsqueeze(0)
+        out = predictions[0].unsqueeze(0)
+        y_hat = out.argmax(1).item()
+        predicted_idx = str(y_hat)
+        print(predicted_idx)
+        inferences.append(self.label_mappings[int(predicted_idx)])
         # Handling inference for question_answering.
         
         print("Predictions", inferences)
