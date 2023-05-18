@@ -1,6 +1,6 @@
 # NLP_GROUP_CW
 Before Hosting the Server:
-1. Ensure that OpenJDK 11 is installed on you machine.
+1. Ensure that OpenJDK 11 is installed on your machine.
 2. Install all of the requirements in the 'requirements.txt' file.
 3. Make sure you have the traced_distilbert.pt file as well.
 
