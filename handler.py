@@ -65,8 +65,8 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         self.model = torch.jit.load(model_pt_path, map_location=self.device)
 
         self.tokenizer = AutoTokenizer.from_pretrained(
-            self.setup_config["model_name"],
-            do_lower_case=self.setup_config["do_lower_case"],
+            'distilbert-base-cased',
+            do_lower_case=True,
         )
 
         self.model.eval()
