@@ -6,7 +6,11 @@ Before Hosting the Server:
 
 
 COMMAND FOR MAKING MODEL ARCHIVE FILE (.mar): 
+```console
 torch-model-archiver --model-name DistilBERTModel --version 1.0 --serialized-file traced_distilbert.pt --handler handler
+```
 
 COMMAND FOR HOSTING MODEL: 
+```console
 host the server: torchserve --start --model-store model_store --models DistilBERTModel=DistilBERTModel.mar
+```
