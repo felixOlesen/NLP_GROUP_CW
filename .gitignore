@@ -3,3 +3,4 @@
 *.cfg
 *.mar
 *.DS_Store
+*.pyc

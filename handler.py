@@ -5,6 +5,7 @@ import os
 from abc import ABC
 
 import torch
+import json
 import transformers
 from captum.attr import LayerIntegratedGradients
 from transformers import (
@@ -73,22 +74,9 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         logger.info("Transformer model from path %s loaded successfully", model_dir)
 
         # Read the mapping file, index to object name
-        mapping_file_path = os.path.join(model_dir, "index_to_name.json")
-        
-        self.label_mappings = {0: 'admiration',
-                            1: 'anger',
-                            2: 'confusion',
-                            3: 'curiosity',
-                            4: 'desire',
-                            5: 'disgust',
-                            6: 'fear',
-                            7: 'gratitude',
-                            8: 'joy',
-                            9: 'relief',
-                            10: 'remorse',
-                            11: 'sadness',
-                            12: 'surprise',
-                            13: 'neutral'}
+        with open('labelMap.json') as json_file:
+            self.label_mappings = json.load(json_file)
+            self.label_mappings = json.loads(self.label_mappings)
         
         # Question answering does not need the index_to_name.json file.
         self.initialized = True
@@ -160,14 +148,14 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         print("This the output from the Seq classification model", predictions)
 
         #num_rows, num_cols = predictions[0].shape
-        #num_rows = predictions[0].shape
-        #for i in range(num_rows):
-        #out = predictions[0][i].unsqueeze(0)
-        out = predictions[0].unsqueeze(0)
-        y_hat = out.argmax(1).item()
-        predicted_idx = str(y_hat)
-        print(predicted_idx)
-        inferences.append(self.label_mappings[int(predicted_idx)])
+        num_rows = predictions.shape[0]
+    
+        
+        for i in range(num_rows):
+            out = predictions[i].unsqueeze(0)
+            y_hat = out.argmax(1).item()
+            predicted_idx = str(y_hat)
+            inferences.append(predicted_idx)
         # Handling inference for question_answering.
         
         print("Predictions", inferences)
@@ -180,6 +168,10 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         Returns:
             (list): Returns a list of the Predictions and Explanations.
         """
-        return inference_output
+        print(inference_output)
+        labeledOutputs = [self.label_mappings[output] for output in inference_output]
+        
+        
+        return labeledOutputs
 
     
