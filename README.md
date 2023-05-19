@@ -10,6 +10,8 @@ COMMAND FOR MAKING MODEL ARCHIVE FILE (.mar):
 torch-model-archiver --model-name DistilBERTModel --version 1.0 --serialized-file traced_distilbert.pt --handler handler
 ```
 
+Next 'mkdir model_store' inside the folder, and move the new generated .mar file into that folder. 'mv DistilBERTModel.mar /model_store 
+
 COMMAND FOR HOSTING MODEL: 
 ```console
 torchserve --start --model-store model_store --models DistilBERTModel=DistilBERTModel.mar
