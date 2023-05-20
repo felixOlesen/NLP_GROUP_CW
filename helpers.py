@@ -1,14 +1,14 @@
-import pandas as pd
-import torch
+import os
 import copy
-import numpy as np
+import torch
 import random
-import pickle
 import collections
+import pandas as pd
+import numpy as np
 
+from tqdm import tqdm
 from torch.utils.data import TensorDataset
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 from matplotlib import pyplot as plt
 
 PARENT_LABEL_HIERARCHY = {
@@ -27,6 +27,25 @@ PARENT_LABEL_HIERARCHY = {
     "excitement" : "joy",
     "amusement" : "joy",
 }
+
+
+def parse_logs(filename):
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            output = f.readlines()
+        
+        df = []
+        for line in output:
+            df.append([l.strip() for l in line.split("||")])
+
+        if len(df) == 0:
+            raise Exception("Log file {filename} empty")
+
+        df = pd.DataFrame(df, columns = ["Date", "Time", "Input Text", "Sentiment Prediction"])
+        
+        return df
+    
+    raise Exception(f"Log file {filename} not found")
 
 # Preprocessing helpers ################################################
 def select_label(sample):

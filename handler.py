@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from abc import ABC
+#from torchserve import TorchServeLoggingHandler
 
 import torch
 import json
@@ -19,9 +20,21 @@ from transformers import (
 
 from ts.torch_handler.base_handler import BaseHandler
 
-logger = logging.getLogger(__name__)
-logger.info("Transformers version %s", transformers.__version__)
+with open('handlerConfig.json', 'r') as json_file:
+    handlerConfig = json.load(json_file)
+    handlerConfig = json.loads(handlerConfig)
+            
+workingDir = handlerConfig['extraConfig']['workingDir']
 
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler(os.path.join(workingDir, 'logs/predictions.log'))
+datefmt = "%Y-%m-%d || %H:%M:%S"
+formatter = logging.Formatter('%(asctime)s.%(msecs)03d || %(message)s', datefmt)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
+# root_logger = logging.getLogger()
 
 class TransformersSeqClassifierHandler(BaseHandler, ABC):
     """
@@ -45,7 +58,6 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         model_dir = properties.get("model_dir")
         serialized_file = self.manifest["model"]["serializedFile"]
         model_pt_path = os.path.join(model_dir, serialized_file)
-
         self.device = torch.device(
             "cuda:" + str(properties.get("gpu_id"))
             if torch.cuda.is_available() and properties.get("gpu_id") is not None
@@ -71,12 +83,14 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         )
 
         self.model.eval()
-        logger.info("Transformer model from path %s loaded successfully", model_dir)
 
         # Read the mapping file, index to object name
-        with open('labelMap.json') as json_file:
-            self.label_mappings = json.load(json_file)
-            self.label_mappings = json.loads(self.label_mappings)
+        # with open('handlerConfig.json') as json_file:
+        #     handlerConfig = json.load(json_file)
+        #     handlerConfig = json.loads(self.handlerConfig)
+        
+        self.label_mappings = handlerConfig['labelMap']
+        
         
         # Question answering does not need the index_to_name.json file.
         self.initialized = True
@@ -99,7 +113,7 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
                 input_text = input_text.decode("utf-8")
             
             max_length = 256
-            logger.info("Received text: '%s'", input_text)
+            self.input_text = input_text
             # preprocessing text for sequence_classification, token_classification or text_generation
 
             inputs = self.tokenizer.encode_plus(
@@ -136,16 +150,17 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         Returns:
             list : It returns a list of the predicted value for the input text
         """
+
         input_ids_batch, attention_mask_batch = input_batch
         inferences = []
         # Handling inference for sequence_classification.
         
         predictions = self.model(input_ids_batch, attention_mask_batch)
-        print(
+        logger.debug(
             "This the output size from the Seq classification model",
             predictions[0].size(),
         )
-        print("This the output from the Seq classification model", predictions)
+        logger.debug("This the output from the Seq classification model", predictions)
 
         #num_rows, num_cols = predictions[0].shape
         num_rows = predictions.shape[0]
@@ -158,7 +173,6 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
             inferences.append(predicted_idx)
         # Handling inference for question_answering.
         
-        print("Predictions", inferences)
         return inferences
 
     def postprocess(self, inference_output):
@@ -168,9 +182,12 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         Returns:
             (list): Returns a list of the Predictions and Explanations.
         """
-        print(inference_output)
-        labeledOutputs = [self.label_mappings[output] for output in inference_output]
+
         
+        input_text = self.input_text.replace("\n", " ")
+        
+        labeledOutputs = [self.label_mappings[output] for output in inference_output]
+        logger.info("%s || %s", input_text, labeledOutputs[0])
         
         return labeledOutputs
 

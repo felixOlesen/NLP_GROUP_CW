@@ -4,3 +4,4 @@
 *.mar
 *.DS_Store
 *.pyc
+handlerConfig.json

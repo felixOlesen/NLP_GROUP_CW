@@ -13,6 +13,7 @@ from torch import nn
 from transformers import DistilBertTokenizer, DistilBertModel
 from transformers import AdamW
 import argparse
+import os
 
 SEED = 42
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -77,9 +78,11 @@ if __name__ == "__main__":
                                              dataset['train'].features['labels'].feature.names)
     #save remapped labels as json
     LABELS = {v: k for k, v in LABELS.items()}
-    with open('labelMap.json', 'w') as fp:
-        labelMap = json.dumps(LABELS)
-        json.dump(labelMap, fp)
+    currentDir = {'workingDir':os.getcwd()}
+    handlerConfig = {'labelMap':LABELS, 'extraConfig':currentDir}
+    with open('handlerConfig.json', 'w') as fp:
+        handlerConfig = json.dumps(handlerConfig)
+        json.dump(handlerConfig, fp)
     
     #set up tokenizer
     tokenizer = DistilBertTokenizer.from_pretrained(MODEL_NAME, use_fast=True, 
