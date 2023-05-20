@@ -2,17 +2,26 @@
 Before Hosting the Server:
 1. Ensure that OpenJDK 11 is installed on your machine.
 2. Install all of the requirements in the 'requirements.txt' file.
-3. Make sure you have the traced_distilbert.pt file as well.
+3. For conda installations, the "environment.yml" file can be used to install the necessary packages.
 
+### Running TorchServe:
+#### With CI/CD Pipeline Script
+```console
+./ci_pipeline.sh
+```
 
-COMMAND FOR MAKING MODEL ARCHIVE FILE (.mar): 
+#### Manually:
+##### Making Model Archive File (.mar): 
 ```console
 torch-model-archiver --model-name DistilBERTModel --version 1.0 --serialized-file traced_distilbert.pt --handler handler
 ```
-
-Next 'mkdir model_store' inside the folder, and move the new generated .mar file into that folder. 'mv DistilBERTModel.mar /model_store 
-
-COMMAND FOR HOSTING MODEL: 
+##### Move the produced Model Archive File to Model Store:
 ```console
-torchserve --start --model-store model_store --models DistilBERTModel=DistilBERTModel.mar
+mkdir model_store
+mv DistilBERTModel.mar /model_store
+```
+
+##### Hosting the Model: 
+```console
+torchserve --start --model-store model_store --models DistilBERTModel=DistilBERTModel.mar --ts-config config.properties
 ```
